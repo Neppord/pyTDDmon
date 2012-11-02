@@ -78,12 +78,15 @@ class Pytddmon:
         self.monitor = monitor
         self.change_detected = False
 
+        # This is not composition this is a functionality.
+        # Since Pytddmon Class is a composer it should not have
+        # the field it self.
         self.total_tests_run = 0
         self.total_tests_passed = 0
         self.last_testrun_time = -1
         self.log = ""
         self.status_message = 'n/a'
-
+        # end of rant, btw pylint agreas with me!
         self.run_tests()
 
     def run_tests(self):
@@ -108,12 +111,6 @@ class Pytddmon:
         self.last_testrun_time = time.time() - start
         
         now = time.strftime("%H:%M:%S", time.localtime())
-        self.log = ""
-        self.log += "Monitoring folder %s.\n" % self.project_name
-        self.log += "Found <TOTALTESTS> tests in %i files.\n" % len(results)
-        self.log += "Last change detected at %s.\n" % now
-        self.log += "Test run took %.2f seconds.\n" % self.last_testrun_time
-        self.log += "\n"
         self.total_tests_passed = 0
         self.total_tests_run = 0
         module_logs = []  # Summary for each module with errors first
@@ -126,9 +123,19 @@ class Pytddmon:
                 module_logs.insert(0, module_log)
             else:
                 module_logs.append(module_log)
+        total_tests = int(self.total_tests_run.real)
+        # logging?
+        self.log = ""
+        self.log += "Monitoring folder %s.\n" % self.project_name
+        self.log += "Found %i tests in %i files.\n" % (
+            total_tests,
+            len(results)
+        )
+        self.log += "Last change detected at %s.\n" % now
+        self.log += "Test run took %.2f seconds.\n" % self.last_testrun_time
+        self.log += "\n"
         self.log += ''.join(module_logs)
-        self.log = self.log.replace('<TOTALTESTS>', 
-                str(int(self.total_tests_run.real)))
+        # /logging?
         self.status_message = now
 
     def get_and_set_change_detected(self):
@@ -148,6 +155,7 @@ class Pytddmon:
     def get_status_message(self):
         """Return message in status bar"""
         return self.status_message
+
 
 class Monitor:
     'Looks for file changes when prompted to'
