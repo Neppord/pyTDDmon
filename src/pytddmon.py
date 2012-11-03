@@ -210,8 +210,6 @@ class FileFinder:
         "full string regexp check"
         return bool(re.match(self.regexp + "$", string_to_match))
 
-wildcard_to_regex = fnmatch.translate
-
 ####
 ## Finding & running tests
 ####
@@ -291,13 +289,13 @@ def find_doctests_in_module(module):
         return unittest.TestSuite()
 
 def run_suite(suite):
-    def StringIO():
+    def string_io():
         if ON_PYTHON3:
             import io as StringIO
         else:
             import StringIO 
         return StringIO.StringIO()
-    err_log = StringIO()
+    err_log = string_io()
     text_test_runner = unittest.TextTestRunner(stream = err_log, verbosity = 1)
     result = text_test_runner.run(suite)
     green = result.testsRun - len(result.failures) - len(result.errors)
@@ -318,18 +316,18 @@ def import_tkinter():
         import tkinter
     return tkinter
 
-def import_tkFont():
+def import_tk_font():
     "imports tkFont from python 3.x or python 2.x"
     if not ON_PYTHON3:
-        import tkFont
+        import tkFont as tk_font
     else:
-        from tkinter import font as tkFont 
-    return tkFont
+        from tkinter import font as tk_font 
+    return tk_font
     
 class TKGUIButton(object):
     """Encapsulate the button(label)"""
-    def __init__(self, tkinter, tkFont, toplevel, display_log_callback):
-        self.font = tkFont.Font(name="Helvetica", size=28)
+    def __init__(self, tkinter, tk_font, toplevel, display_log_callback):
+        self.font = tk_font.Font(name="Helvetica", size=28)
         self.label = tkinter.Label(
             toplevel,
             text="loading...",
@@ -366,10 +364,10 @@ class TKGUIButton(object):
 
 class TkGUI(object):
     """Connect pytddmon engine to Tkinter GUI toolkit"""
-    def __init__(self, pytddmon, tkinter, tkFont):
+    def __init__(self, pytddmon, tkinter, tk_font):
         self.pytddmon = pytddmon
         self.tkinter = tkinter
-        self.tkFont = tkFont
+        self.tk_font = tk_font
         self.color_picker = ColorPicker()
         self.root = None
         self.building_root()
@@ -379,7 +377,7 @@ class TkGUI(object):
         self.building_frame()
         self.button = TKGUIButton(
             tkinter,
-            tkFont,
+            tk_font,
             self.frame,
             self.display_log_message
         )
@@ -413,7 +411,7 @@ class TkGUI(object):
 
     def building_fonts(self):
         "building fonts"
-        self.title_font = self.tkFont.nametofont("TkCaptionFont")
+        self.title_font = self.tk_font.nametofont("TkCaptionFont")
 
     def building_frame(self):
         """Creates a frame and assigns it to self.frame"""
@@ -448,7 +446,7 @@ class TkGUI(object):
 
     def _get_text(self):
         "Calculates the text to show the user(passed/total or Error!)"
-        if self.pytddmon.total_tests_run.imag!=0:
+        if self.pytddmon.total_tests_run.imag != 0:
             text = "?ERROR"
         else:
             text = "%r/%r" % (
@@ -610,7 +608,7 @@ def run():
     
     # What files to monitor?
     if not static_file_set:
-        regex = wildcard_to_regex("*.py")
+        regex = fnmatch.translate("*.py")
     else:
         regex = '|'.join(static_file_set)
     file_finder = FileFinder(cwd, regex)
@@ -627,7 +625,7 @@ def run():
     
     # Start the engine!
     if not test_mode:
-        TkGUI(pytddmon, import_tkinter(), import_tkFont()).run()
+        TkGUI(pytddmon, import_tkinter(), import_tk_font()).run()
     else:
         pytddmon.main()
         with open("pytddmon.log", "w") as log_file:
