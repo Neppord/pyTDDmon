@@ -24,7 +24,7 @@ Ilian Iliev
 Henrik Bohre
     Status bar in pytddmon window, showing either last time tests were
     run, or "Testing..." during a test run
-    
+
 
 LICENSE
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -65,13 +65,14 @@ ON_WINDOWS = platform.system() == "Windows"
 ## Core
 ####
 
+
 class Pytddmon:
     "The core class, all functionality is combined into this class"
     def __init__(
         self,
         file_finder,
         monitor,
-        project_name = "<pytddmon>"
+        project_name="<pytddmon>"
     ):
         self.file_finder = file_finder
         self.project_name = project_name
@@ -91,9 +92,9 @@ class Pytddmon:
 
     def run_tests(self):
         """Runs all tests and updates state variables with results."""
-        
+
         file_paths = self.file_finder()
-        
+
         # We need to run the tests in a separate process, since
         # Python caches loaded modules, and unittest/doctest
         # imports modules to run them.
@@ -102,14 +103,14 @@ class Pytddmon:
         # time, using processes = 1.
         start = time.time()
         if file_paths:
-            pool = multiprocessing.Pool(processes = 1)
+            pool = multiprocessing.Pool(processes=1)
             results = pool.map(run_tests_in_file, file_paths)
             pool.close()
             pool.join()
         else:
             results = []
         self.last_testrun_time = time.time() - start
-        
+
         now = time.strftime("%H:%M:%S", time.localtime())
         self.total_tests_passed = 0
         self.total_tests_run = 0
@@ -159,7 +160,7 @@ class Pytddmon:
 
 class Monitor:
     'Looks for file changes when prompted to'
-    
+
     def __init__(self, file_finder, get_file_size, get_file_modtime):
         self.file_finder = file_finder
         self.get_file_size = get_file_size
@@ -187,11 +188,11 @@ class Monitor:
 
 class FileFinder:
     "Returns all files matching given regular expression from root downwards"
-    
+
     def __init__(self, root, regexp):
         self.root = os.path.abspath(root)
         self.regexp = regexp
-        
+
     def __call__(self):
         return self.find_files()
 
@@ -205,7 +206,7 @@ class FileFinder:
                         os.path.abspath(os.path.join(path, filename))
                     )
         return file_paths
-        
+
     def re_complete_match(self, string_to_match):
         "full string regexp check"
         return bool(re.match(self.regexp + "$", string_to_match))
@@ -213,6 +214,7 @@ class FileFinder:
 ####
 ## Finding & running tests
 ####
+
 
 def log_exceptions(func):
     """Decorator that forwards the error message from an exception to the log
@@ -227,18 +229,21 @@ def log_exceptions(func):
             return func(*a, **k)
         except:
             import traceback
-            return ('Exception(%s)' % a[0] , 0, 1j, traceback.format_exc())
+            return (('Exception(%s)' % a[0]), 0, 1j, traceback.format_exc())
     return wrapper
+
 
 @log_exceptions
 def run_tests_in_file(file_path):
     module = file_name_to_module("", file_path)
     return run_module(module)
 
+
 def run_module(module):
     suite = find_tests_in_module(module)
     (green, total, log) = run_suite(suite)
     return (module, green, total, log)
+
 
 def file_name_to_module(base_path, file_name):
     r"""Converts filenames of files in packages to import friendly dot
@@ -272,41 +277,51 @@ def file_name_to_module(base_path, file_name):
     module_name = '.'.join(module_words)
     return module_name
 
+
 def find_tests_in_module(module):
     suite = unittest.TestSuite()
     suite.addTests(find_unittests_in_module(module))
     suite.addTests(find_doctests_in_module(module))
     return suite
 
+
 def find_unittests_in_module(module):
     test_loader = unittest.TestLoader()
     return test_loader.loadTestsFromName(module)
 
+
 def find_doctests_in_module(module):
     try:
-        return doctest.DocTestSuite(module, optionflags = doctest.ELLIPSIS)
+        return doctest.DocTestSuite(module, optionflags=doctest.ELLIPSIS)
     except ValueError:
         return unittest.TestSuite()
+
 
 def run_suite(suite):
     def string_io():
         if ON_PYTHON3:
             import io as StringIO
         else:
-            import StringIO 
+            import StringIO
         return StringIO.StringIO()
     err_log = string_io()
-    text_test_runner = unittest.TextTestRunner(stream = err_log, verbosity = 1)
+    text_test_runner = unittest.TextTestRunner(stream=err_log, verbosity=1)
     result = text_test_runner.run(suite)
     green = result.testsRun - len(result.failures) - len(result.errors)
     total = result.testsRun
-    log = err_log.getvalue() if green<total else "All %i tests passed\n" % green
+
+    if green < total:
+        log = err_log.getvalue()
+    else:
+        log = "All %i tests passed\n" % green
+
     return (green, total, log)
 
 
 ####
 ## GUI
 ####
+
 
 def import_tkinter():
     "imports tkinter from python 3.x or python 2.x"
@@ -316,14 +331,16 @@ def import_tkinter():
         import tkinter
     return tkinter
 
+
 def import_tk_font():
     "imports tkFont from python 3.x or python 2.x"
     if not ON_PYTHON3:
         import tkFont as tk_font
     else:
-        from tkinter import font as tk_font 
+        from tkinter import font as tk_font
     return tk_font
-    
+
+
 class TKGUIButton(object):
     """Encapsulate the button(label)"""
     def __init__(self, tkinter, tk_font, toplevel, display_log_callback):
@@ -362,6 +379,7 @@ class TKGUIButton(object):
             text=text
         )
 
+
 class TkGUI(object):
     """Connect pytddmon engine to Tkinter GUI toolkit"""
     def __init__(self, pytddmon, tkinter, tk_font):
@@ -394,7 +412,7 @@ class TkGUI(object):
         self.root.minsize(
             width=self.title_font.measure(
                 self.pytddmon.project_name
-            ) + buttons_width, 
+            ) + buttons_width,
             height=0
         )
         self.frame.pack(expand=1, fill="both")
@@ -462,7 +480,7 @@ class TkGUI(object):
         self.button.update(text, rgb)
         self.root.configure(bg=rgb)
         self.update_status(self.pytddmon.get_status_message())
-    
+
         if self.pytddmon.change_detected:
             self.update_text_window()
 
@@ -478,7 +496,7 @@ class TkGUI(object):
         return message
 
     def create_text_window(self):
-        """creates new window and text widget""" 
+        """creates new window and text widget"""
         win = self.tkinter.Toplevel()
         if ON_WINDOWS:
             win.attributes("-toolwindow", 1)
@@ -516,6 +534,7 @@ class TkGUI(object):
         """starts the main loop and goes into sleep"""
         self.loop()
         self.root.mainloop()
+
 
 class ColorPicker:
     """
@@ -584,45 +603,49 @@ def parse_commandline():
     (options, args) = parser.parse_args()
     return (args, options.log_and_exit)
 
+
 def build_monitor(file_finder):
     os.stat_float_times(False)
+
     def get_file_size(file_path):
         stat = os.stat(file_path)
         return stat.st_size
+
     def get_file_modtime(file_path):
         stat = os.stat(file_path)
         return stat.st_mtime
     return Monitor(file_finder, get_file_size, get_file_modtime)
+
 
 def run():
     """
     The main function: basic initialization and program start
     """
     cwd = os.getcwd()
-    
+
     # Include current work directory in Python path
     sys.path[:0] = [cwd]
-    
+
     # Command line argument handling
     (static_file_set, test_mode) = parse_commandline()
-    
+
     # What files to monitor?
     if not static_file_set:
         regex = fnmatch.translate("*.py")
     else:
         regex = '|'.join(static_file_set)
     file_finder = FileFinder(cwd, regex)
-    
+
     # The change detector: Monitor
     monitor = build_monitor(file_finder)
-    
+
     # Python engine ready to be setup
     pytddmon = Pytddmon(
         file_finder,
         monitor,
-        project_name = os.path.basename(cwd)
+        project_name=os.path.basename(cwd)
     )
-    
+
     # Start the engine!
     if not test_mode:
         TkGUI(pytddmon, import_tkinter(), import_tk_font()).run()
