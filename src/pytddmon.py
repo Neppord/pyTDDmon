@@ -57,6 +57,7 @@ import time
 import multiprocessing
 import fnmatch
 import functools
+from collections import namedtuple
 
 ON_PYTHON3 = sys.version_info[0] == 3
 ON_WINDOWS = platform.system() == "Windows"
@@ -66,6 +67,14 @@ ON_WINDOWS = platform.system() == "Windows"
 ####
 
 
+Result = namedtuple(
+    "Result",
+    (
+        "total",
+        "passed",
+        "time",
+    )
+)
 class Pytddmon:
     "The core class, all functionality is combined into this class"
     def __init__(
@@ -82,9 +91,11 @@ class Pytddmon:
         # This is not composition this is a functionality.
         # Since Pytddmon Class is a composer it should not have
         # the field it self.
-        self.total_tests_run = 0
-        self.total_tests_passed = 0
-        self.last_testrun_time = -1
+        self.result = Result(
+            total=0,
+            passed=0,
+            time=-1
+        )
         self.log = ""
         self.status_message = 'n/a'
         # end of rant, btw pylint agreas with me!
@@ -109,22 +120,22 @@ class Pytddmon:
             pool.join()
         else:
             results = []
-        self.last_testrun_time = time.time() - start
+        run_time = time.time() - start
 
         now = time.strftime("%H:%M:%S", time.localtime())
-        self.total_tests_passed = 0
-        self.total_tests_run = 0
+        passed = 0
+        total = 0
         module_logs = []  # Summary for each module with errors first
         for packed in results:
-            (module, green, total, logtext) = packed
-            self.total_tests_passed += green
-            self.total_tests_run += total
+            (module, green, number_of, logtext) = packed
+            passed += green
+            total += number_of
             module_log = "\nLog from " + module + ":\n" + logtext
-            if not isinstance(total, int) or total - green > 0:
+            if not isinstance(number_of, int) or total - green > 0:
                 module_logs.insert(0, module_log)
             else:
                 module_logs.append(module_log)
-        total_tests = int(self.total_tests_run.real)
+        total_tests = int(total.real)
         # logging?
         self.log = ""
         self.log += "Monitoring folder %s.\n" % self.project_name
@@ -133,11 +144,16 @@ class Pytddmon:
             len(results)
         )
         self.log += "Last change detected at %s.\n" % now
-        self.log += "Test run took %.2f seconds.\n" % self.last_testrun_time
+        self.log += "Test run took %.2f seconds.\n" % run_time
         self.log += "\n"
         self.log += ''.join(module_logs)
         # /logging?
         self.status_message = now
+        self.result = Result(
+            total=total,
+            passed=passed,
+            time=run_time
+        )
 
     def get_and_set_change_detected(self):
         self.change_detected = self.monitor.look_for_changes()
@@ -454,8 +470,8 @@ class TkGUI(object):
     def _update_and_get_color(self):
         "Calculate the current color and trigger pulse"
         self.color_picker.set_result(
-            self.pytddmon.total_tests_passed,
-            self.pytddmon.total_tests_run,
+            self.pytddmon.result.passed,
+            self.pytddmon.result.total,
         )
         light, color = self.color_picker.pick()
         rgb = self.color_picker.translate_color(light, color)
@@ -464,12 +480,12 @@ class TkGUI(object):
 
     def _get_text(self):
         "Calculates the text to show the user(passed/total or Error!)"
-        if self.pytddmon.total_tests_run.imag != 0:
+        if self.pytddmon.result.total.imag != 0:
             text = "?ERROR"
         else:
             text = "%r/%r" % (
-                self.pytddmon.total_tests_passed,
-                self.pytddmon.total_tests_run
+                self.pytddmon.result.passed,
+                self.pytddmon.result.total
             )
         return text
 
@@ -654,8 +670,8 @@ def run():
         with open("pytddmon.log", "w") as log_file:
             log_file.write(
                 "green=%r\ntotal=%r\n" % (
-                    pytddmon.total_tests_passed,
-                    pytddmon.total_tests_run
+                    pytddmon.result.passed,
+                    pytddmon.result.total
                 )
             )
 

@@ -9,8 +9,8 @@ from pytddmon import Pytddmon
 #- kör tester från början
 #- kör inte tester om ingen förändring
 #- kör tester om förändring
-- summa finns i .total_tests
-- gröna finns i .total_passed_tests
+- summa finns i .result.total
+- gröna finns i .result.passed
 '''
 
 class test_Pytddmon_monitor_communication(unittest.TestCase):
@@ -59,13 +59,13 @@ class test_Pytddmon_monitor_communication(unittest.TestCase):
         fake_monitor = self.FakeMonitor(look_for_changes_returns = [False])
         pytddmon = Pytddmon(self.fake_filefinder, fake_monitor)
         pytddmon.main()
-        self.assertEqual(0, pytddmon.total_tests_run)
+        self.assertEqual(0, pytddmon.result.total)
         
     def test_total_tests_is_zero_if_no_tests_are_run(self):
         fake_monitor = self.FakeMonitor(look_for_changes_returns = [False])
         pytddmon = Pytddmon(self.fake_filefinder, fake_monitor)
         pytddmon.main()
-        self.assertEqual(0, pytddmon.total_tests_run)
+        self.assertEqual(0, pytddmon.result.total)
 
 if __name__ == '__main__':
     unittest.main()
