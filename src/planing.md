@@ -15,8 +15,27 @@
 
 
 # Messages 
+ * Regular File Found       - Path to file
+ * Python File Found        - Path to file, and module name
  * Files Changed            - Files found, files Changed
  * Found Tests              - Tests found
  * Starting Test            - Name of test
  * One Test Finished        - time it took
- * All tests have bean runn - The log object
+ * All tests have bean run  - The log object
+
+
+# Emiters
+ * File Finder              - From path specs emits found files
+ * File Watcher             - From a list of files emits changes
+ * Test Finder              - From a list of src files emits tests
+ * Test Runner              - From a list o tests emits test start/stop
+                            - Also returns when all tests has been run
+
+
+# Consumers
+ * UI                       - Listen for all Messages
+ * File Watcher             - Listens for added Files
+ * Test Finder              - Listens for added Files
+ * Test Runner              - Listens for added sourcfiles
+                            - Listens for file changes
+
