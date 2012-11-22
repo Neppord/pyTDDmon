@@ -131,7 +131,7 @@ class Pytddmon:
             passed += green
             total += number_of
             module_log = "\nLog from " + module + ":\n" + logtext
-            if not isinstance(number_of, int) or total - green > 0:
+            if not isinstance(number_of, int) or total.real - green.real > 0:
                 module_logs.insert(0, module_log)
             else:
                 module_logs.append(module_log)
