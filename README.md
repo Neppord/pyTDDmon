@@ -10,6 +10,12 @@ http://pytddmon.org
 
 How to use
 ----------
+Run the build script in the src directory.
+
+    python build.py
+
+This creates a zip file with the name pytddmon.py
+
 Copy `src/pytddmon.py` to your projects' root folder. From there, type:
 
            python pytddmon.py
