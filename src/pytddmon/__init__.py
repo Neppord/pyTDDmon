@@ -58,7 +58,14 @@ import fnmatch
 import functools
 from collections import namedtuple
 
-from gui import TkGUI, import_tkinter, import_tk_font
+# If we ran the module as a script instead of as a module, then we need to add
+# the current dir as a part of the path.
+#
+# This should probobly be moved to __main_
+if 'pytddmon' in sys.path[0]: #matches both pytddmon and pytddmon.py
+  sys.path[0:0] = ['']
+
+from pytddmon.gui import TkGUI, import_tkinter, import_tk_font
 
 ON_PYTHON3 = sys.version_info[0] == 3
 
