@@ -1,5 +1,5 @@
 #coding: utf-8
-'''
+LICENSE = '''
 COPYRIGHT (c) 2009, 2010, 2011, 2012
 .. in order of first contribution
 Olof Bjarnason
