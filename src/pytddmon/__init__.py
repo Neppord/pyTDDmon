@@ -365,6 +365,3 @@ def run():
                     pytddmon.result.total
                 )
             )
-
-if __name__ == '__main__':
-    run()
